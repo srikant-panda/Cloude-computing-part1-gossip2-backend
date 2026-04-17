@@ -57,7 +57,7 @@ class RequestModel(Base):
 
 engine = create_async_engine(
     DATABASE_URL,
-    echo=False,
+    echo=True,
     future=True,
     connect_args={"statement_cache_size": 0}
 )
@@ -164,10 +164,12 @@ class Info(BaseModel):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("🚀 App started")
-
-    async with engine.begin() as conn:
-        await conn.execute(text(f'CREATE SCHEMA IF NOT EXISTS "{DEFAULT_SCHEMA_NAME}"'))
-        await conn.run_sync(Base.metadata.create_all)
+    try:
+        async with engine.begin() as conn:
+            await conn.execute(text(f'CREATE SCHEMA IF NOT EXISTS "{DEFAULT_SCHEMA_NAME}"'))
+            await conn.run_sync(Base.metadata.create_all)
+    except TimeoutError:
+        logger.info("Database connection failde. Your data is not storing to database.")
 
     yield
 
