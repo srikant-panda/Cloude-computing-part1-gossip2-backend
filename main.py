@@ -61,7 +61,7 @@ class RequestModel(Base):
 
 engine = create_async_engine(
     DATABASE_URL,
-    echo=True,
+    echo=False,
     future=True,
     connect_args={"statement_cache_size": 0}
 )
@@ -204,7 +204,7 @@ async def rate_limit_handler(request : Request,exec : RateLimitExceeded):
 
 @app.post("/submit")
 @limiter.limit("3/minutes")
-async def submit_application(data: Info, db: AsyncSession = Depends(getDb)):
+async def submit_application(request:Request,data: Info, db: AsyncSession = Depends(getDb)):
     logger.info(f"[REQUEST] {data.email}")
 
     # 🔥 RATE LIMIT CHECK
